@@ -57,6 +57,7 @@ def getmovies(param, dbh):
                         seen = False
                         for ban in banlist:
                             if ban in str(soup):
+                                #print(str(soup))
                                 seen = True
                                 break
                         if seen:
@@ -91,7 +92,7 @@ def main():
 
     params = getparams()
 
-    multithreading(getmovies, [[browseurl + param, dbh] for param in params])
+    multithreading(getmovies, [[browseurl + param, dbh] for param in params], 20)
     #멀티 스레딩 함수를 통해 동시에 10개씩 크롤링
 
 if __name__ == '__main__':
