@@ -3,7 +3,7 @@
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
 
@@ -102,3 +102,8 @@ ENV/
 /site
 
 # End of https://www.gitignore.io/api/python
+Osori-MovieRecommender.iml
+misc.xml
+modules.xml
+vcs.xml
+workspace.xml
