@@ -46,7 +46,7 @@ def getmovies(param, dbh):
                     title = movie.text
                     link = baseurl + movie['href']
                     code = link[link.index('=') + 1:]
-                    movieitem = {'title': title, 'link': link, 'code': code}
+                    movieitem = {'title': title, 'link': link, 'code': code, 'valid' : True}
                     print("Reviewing movie: " + title)
                     #print(movieitem)
                     if dbh.movielist.find({'code': code}).count() < 1:#디비에 없는 경우
