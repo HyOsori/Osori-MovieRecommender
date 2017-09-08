@@ -1,26 +1,27 @@
 import threading
 
-def testfunction(a):
-    print(a)
 
-"""
-multithreading is a function to perform multiple queries at once
-n is the parameter to choose the limit of thread that can run at once
-arguments are the complete list of parameters that you want to pass to
-func which is the function you want to run parallely
-"""
+# since multiple arguments may be passed every item in args is a list
+def multi_threading(func, arguments, n=10):
 
-def multithreading(func, arguments, n=10):#since multiple arguments may be passed every item in args is a list
-    threadsStarted = []
     for i in range(0, len(arguments), n):
-        threadsStarted = []
+
+        thread_objects = []
         for j in range(i, min(len(arguments), n + i)):
-            threadObj = threading.Thread(target=func, args=arguments[j])
-            threadsStarted.append(threadObj)
-            threadObj.start()
-        for thread in threadsStarted:
+
+            thread = threading.Thread(target=func, args=arguments[j])
+            thread_objects.append(thread)
+            thread_objects.append(thread)
+            thread.start()
+
+        for thread in thread_objects:
             thread.join()
+
         print("Continuing")
 
+
+def test_function(a):
+    print(a)
+
 if __name__ == '__main__':
-    multithreading(testfunction, [[x] for x in range(100)])
+    multi_threading(test_function, [[x] for x in range(100)])

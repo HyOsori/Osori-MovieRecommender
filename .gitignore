@@ -3,7 +3,8 @@
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__
+__pycache__/*
 *.py[cod]
 *$py.class
 
@@ -88,7 +89,9 @@ celerybeat-schedule
 
 # virtualenv
 .venv
+.venv3
 venv/
+venv3/
 ENV/
 
 # Spyder project settings
