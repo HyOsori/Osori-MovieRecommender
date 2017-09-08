@@ -170,14 +170,17 @@ def get_traits(movie, dbh):
 def iterate_movie(dbh):
     valid_movies = list(dbh.movielist.find({"valid": True}))
     print(len(valid_movies))
+
+    # 멀티 스레드를 이용해 동시에 20개씩 크롤링
     multi_threading(get_traits, [[movie, dbh] for movie in valid_movies], 20)
 
 
 def main():
     try:
-        # Mongo DB 기본 포트는 사용 중일 확률이 크므로, 27018 포트를 사용
+        # Mongo DB 기본 포트는 다른 작업을 위해 사용될 가능성이 높으므로, 27018 포트를 사용
         mongo_client = MongoClient(host="localhost", port=27018)
         movie_dbh = mongo_client['moviedb']  # 생성할(된) DB 명칭
+
         iterate_movie(movie_dbh)
 
     except Exception as error:

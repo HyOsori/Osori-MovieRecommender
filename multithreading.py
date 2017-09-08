@@ -17,7 +17,7 @@ def multi_threading(func, arguments, n=10):
         for thread in thread_objects:
             thread.join()
 
-        print("Continuing")
+        print(int(1000 * (n + i) / len(arguments)) / 10, "% Completed")
 
 
 def test_function(a):

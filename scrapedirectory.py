@@ -12,6 +12,8 @@ BASE_URL = 'http://movie.naver.com'
 BANNED_LIST = ['TV시리즈', 'TV영화', '단편영화', '비디오영화', '옴니버스영화', '뮤직비디오',
                '옴니버스영화', '웹드라마', '인터넷영화', '공연실황', '뮤지컬']
 
+MAX_PAGE_NUM = 100  # 국가 + 장르가 결정된 경우 최대 몇 페이지 까지 수집할 것인지
+
 
 # 추출할 연도와 국가를 조합해 url parameter로 만들어 반환
 def get_params():
@@ -25,7 +27,7 @@ def get_params():
     params = []
     for year in years:  # 연도별
         for country in countries:  # 국가별
-            for page in range(1, 50):  # 1 ~ 50 페이지 가량을 스크랩핑
+            for page in range(1, MAX_PAGE_NUM):  # 1 ~ MAX_PAGE_NUM 페이지 가량을 스크랩핑
 
                 # 연도와 국가, 페이지에 맞는 url parameter를 생성해 추가
                 params.append(urllib.parse.urlencode((('open', str(year)), ('nation', str(country)), ('page', str(page)))))
@@ -38,10 +40,9 @@ def get_movies(param, dbh):
 
     url = BROWSE_URL + param  # 전체 url
 
-    # Connection 오류 발생에 대비해 예외처리
-
     with urllib.request.urlopen(url) as response:  # with 문 안에 열어서 url을 열고 닫는 문제 해결
-        try:
+        try:  # Connection 오류 발생에 대비해 예외처리
+
             # 한글 디코딩을 위한 부분
             html_code = response.read().decode(response.headers.get_content_charset(), errors='replace')
 
@@ -62,7 +63,7 @@ def get_movies(param, dbh):
 
                     if dbh.movielist.find({'code': code}).count() < 1:  # DB에 없는 경우
                         dbh.movielist.insert_one(movie_info)  # 영화 정보를 삽입
-                        print("Insert into DB: ", title)
+                        # print("Insert into DB: ", title)
                     elif dbh.movielist.find({'code': code}).count() == 1:  # DB에 이미 존재하는 경우
                         
                         seen = False
@@ -73,9 +74,10 @@ def get_movies(param, dbh):
                         
                         if seen:  # 제외 리스트에 포함된 영화 일 경우, vaild -> False
                             dbh.movielist.update_one({'code': code}, {'$set': {'valid': False}})
-                            print("Invalid movie: ", title)
+                            # print("Invalid movie: ", title)
                         else:  # 그렇지 않은 경우 영화 정보 업데이트
-                            print("Update from DB: ", title)
+                            # print("Update from DB: ", title)
+                            continue
 
             # ul 요소에서 class로 구별해서 스크랩핑 2
             movie_list = soup.findAll("ul", {"class": "directory_list"})[0].findAll('a', class_=lambda x: x != 'green')
@@ -87,26 +89,27 @@ def get_movies(param, dbh):
                     link = BASE_URL + movie_info['href']
                     code = link[link.index('=') + 1:]
 
-                    movie_info = {'title': title, 'link': link, 'code': code}  # 아이템 생성 후 넣기
+                    movie_info = {'title': title, 'link': link, 'code': code, 'valid': True}  # 아이템 생성 후 넣기
                     if dbh.movielist.find({'code': code}).count() < 1:  # 디비에 없는 경우
 
-                        print("Insert into DB: ", title)
+                        # print("Insert into DB: ", title)
                         dbh.movielist.insert_one(movie_info)
 
                 except Exception as error:
-                    print("Error1: ", error)
+                    # print("Error1: ", error)
                     continue
 
         except Exception as error:
-            print("Error2: ", error)
+            # print("Error2: ", error)
+            return -1
 
 
 def main():
 
     try:
-        # 디비에 연결 포트는 다른 작업을 위해 27018에 함 db 열어줄때 따로 써줘야한다
+        # Mongo DB 기본 포트는 다른 작업을 위해 사용될 가능성이 높으므로, 27018 포트를 사용
         mongo_client = MongoClient(host="localhost", port=27018)
-        movie_dbh = mongo_client['moviedb']  # 생성할/된 db 이름
+        movie_dbh = mongo_client['moviedb']  # 생성할(된) DB 명칭
 
     except Exception as error:
         print("Error: ", error)
@@ -114,8 +117,9 @@ def main():
 
     params = get_params()
 
-    # 멀티 스레드를 이용해 동시에 10개씩 크롤링
+    # 멀티 스레드를 이용해 동시에 20개씩 크롤링
     multi_threading(get_movies, [[BROWSE_URL + param, movie_dbh] for param in params], 20)
 
+    print("ended?")
 if __name__ == '__main__':
     main()
