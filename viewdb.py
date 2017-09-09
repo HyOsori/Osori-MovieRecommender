@@ -11,7 +11,7 @@ def get_data(dbh):
     movies = list(dbh.movielist.find({"valid": {"$ne": False}}))
 
     shuffle(movies)
-    print_title("무작위 10개의 영화:", movies[:10])
+    print_title(movies[:10])
     print("총 영화 개수:", len(movies))
 
 
@@ -30,7 +30,7 @@ def main():
         movie_dbh = mongo_client['moviedb']  # 생성할(된) DB 명칭
 
         get_data(movie_dbh)
-        # reset_validity(movie_dbh)
+        #reset_validity(movie_dbh, True)
 
     except Exception as error:
 
