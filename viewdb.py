@@ -9,10 +9,11 @@ def print_title(movie_list):
 
 def get_data(dbh):
     movies = list(dbh.movielist.find({"valid": {"$ne": False}}))
-
+    all_movies = list(dbh.movielist.find({}))
     shuffle(movies)
     print_title(movies[:10])
-    print("총 영화 개수:", len(movies))
+    print("총 영화 갯수:", len(all_movies))
+    print("사용 가능 영화 갯수:", len(movies))
 
 
 # 모든 영화의 유효 상태를 일괄 변경
