@@ -17,6 +17,8 @@ def genretogenre(dbh):
             print("Inserting:", counter)
 
     for movie in list(dbh.movielist.find({'valid': True})):
+        if('genre' not in movie):
+            continue
         for x in movie['genre']:
             for y in movie['genre']:
                 if x != y:
