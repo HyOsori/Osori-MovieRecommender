@@ -39,7 +39,7 @@ def test():
 
 def iteratemovie(dbh):
     data = list(dbh.movielist.find({"valid": True}))
-    multithreading(getposter, [[movie, dbh] for movie in data], 20)
+    multi_threading(getposter, [[movie, dbh] for movie in data], 20)
 
 def main():
 
