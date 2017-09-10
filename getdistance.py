@@ -40,7 +40,7 @@ def genredistance(a, b, dbh):#movie A movie B
 
 def getratingdistance(a, dbh):
 
-    return 1 / a['rating']
+    return 30 / a['rating']
 
 def totaldistance(a, b, dbh):
     return genredistance(a, b, dbh) + getratingdistance(b, dbh)

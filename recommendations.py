@@ -2,6 +2,7 @@ import sys
 from pymongo import MongoClient
 from getdistance import totaldistance
 from random import sample
+import random
 
 genrelist = ['블랙코미디', 'SF', '애니메이션', '느와르', '서스펜스', '모험', '멜로/로맨스', '서사', '코미디', '다큐멘터리', '서부', '무협', '전쟁', '드라마', '스릴러', '에로', '가족', '액션', '공연실황', '공포', '범죄', '판타지', '미스터리', '실험', '뮤지컬']
 
@@ -15,6 +16,7 @@ def genretogenre(dbh):
                 if item != genre:
                     counter[item] = 0
             counter['type'] = genre
+            #print("inserting:", counter)
             dbh.genrecounts.insert_one(counter)
             #print("Inserting:", counter)
 
@@ -33,10 +35,12 @@ def choosegenre(genre, dbh, seen, cands=10):
     total = 0
 
     originalgenre = genre#original genre that is being referenced
-    for genre in thisgenre:
-        if genre != '_id' and genre != 'type':
-            counter[genre] = thisgenre[genre]
-            total += counter[genre]
+    for gen in thisgenre:
+        if gen != '_id' and gen != 'type':
+            counter[gen] = thisgenre[gen]
+            total += counter[gen]
+        else:
+            continue
     counter[originalgenre] = total * 2 // 3
     total = total + counter[genre]
     keys = list(counter.keys())
@@ -68,7 +72,6 @@ def choosegenre(genre, dbh, seen, cands=10):
                 ret.append(genrecands[keys[i]].pop())
                 genrespicked.append(keys[i])
                 break
-    print(genrespicked)
     return ret
 
 def removemovie(code, checklist):
@@ -103,6 +106,27 @@ def main():
     genretogenre(dbh)
     with open('movieseen.txt', 'r') as movieseen:
         movieseen = movieseen.read().split()
+
+        ret = []
+        for movie in movieseen:
+            actual_movie = dbh.movielist.find_one({'code': movie})
+            if not actual_movie:
+                continue
+            genres = dbh.movielist.find_one({'code': movie})['genre']
+        #    print(genres)
+            for genre in genres:
+                ret = ret + choosegenre(genre, dbh, movieseen)
+
+        ret = list(set([code['code'] for code in ret]))
+        ret.sort(key=lambda x: dbh.movielist.find_one({'code': x})['rating'])
+        print("Recommendations based on ratings and genre preference")
+        print()
+        for movie in ret[:10]:
+            print(dbh.movielist.find_one({'code': movie})['title'], dbh.movielist.find_one({'code': movie})['code'])
+
+        print()
+        print("Recommendations based on total distance algorithm")
+
         checklist = list(dbh.movielist.find({"valid": True}))
         # grabbing movielist
         movielist = findmovies(movieseen, dbh)
@@ -112,8 +136,8 @@ def main():
         checklist.sort(key = lambda x: addedtotaldistance(movielist, x, dbh))
         candidates = sample(checklist[:40], 10)
         for candidate in candidates:
-            print(candidate["title"])
-            print(candidate["rating"])
+            print(candidate["title"], candidate["code"], candidate["rating"])
+
 
 
 if __name__ == '__main__':
