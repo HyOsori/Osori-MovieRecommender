@@ -4,7 +4,7 @@ import requests, codecs, urllib, re
 import urllib.request
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
-#from multithreading import multithreading
+from multithreading import multi_threading
 
 def getposter(movie,dbh):
     baseurl = 'http://movie.naver.com/movie/bi/mi/basic.nhn?code='
@@ -37,9 +37,9 @@ def test():
     for img in links.findAll('img'):
         print(img.get('src'))
 
-##def iteratemovie(dbh):
-##    data = list(dbh.movielist.find({"valid": True}))
-##    multithreading(getposter, [[movie, dbh] for movie in data], 20)
+def iteratemovie(dbh):
+    data = list(dbh.movielist.find({"valid": True}))
+    multithreading(getposter, [[movie, dbh] for movie in data], 20)
 
 def main():
 
