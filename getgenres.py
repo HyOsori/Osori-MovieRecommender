@@ -9,7 +9,9 @@ lock = threading.Lock()
 
 
 def get_genres(movie, dbh):
-
+    if'genre' in movie:
+        print("The genre is already registered")
+        return -1
     movie_url = movie["link"]
     try:
         with urllib.request.urlopen(movie_url) as response:
@@ -56,12 +58,12 @@ def get_genres(movie, dbh):
                         for second_genre_name in genre_names:
 
                             if first_genre_name != second_genre_name:
-
+                                lock.acquire()
                                 weight = dbh.genrelist.find({'name': first_genre_name})[0]['weight']
                                 weight[second_genre_name] = weight[second_genre_name] + 1
 
                                 dbh.genrelist.update({'name': first_genre_name}, {'$set': {'weight': weight}})
-
+                                lock.release()
                 else:
                     dbh.movielist.update({'_id': movie['_id']}, {'$set': {"valid": False}})
                     print("Not found, Invalid movie!")
@@ -83,6 +85,8 @@ def iterate_movie(dbh):
     # 멀티 스레드를 이용해 동시에 20개씩 크롤링
     multi_threading(get_genres, [[movie, dbh] for movie in movies], 20)
 
+def get_genreweight(dbh, genre_name):
+    return dbh.genrelist.find({'name' : genre_name})[0]['weight']
 
 def main():
     try:
