@@ -12,7 +12,7 @@ BASE_URL = 'http://movie.naver.com'
 BANNED_LIST = ['TV시리즈', 'TV영화', '단편영화', '비디오영화', '옴니버스영화', '뮤직비디오',
                '옴니버스영화', '웹드라마', '인터넷영화', '공연실황', '뮤지컬']
 
-MAX_PAGE_NUM = 100  # 국가 + 장르가 결정된 경우 최대 몇 페이지 까지 수집할 것인지
+MAX_PAGE_NUM = 50  # 국가 + 장르가 결정된 경우 최대 몇 페이지 까지 수집할 것인지
 
 
 # 추출할 연도와 국가를 조합해 url parameter로 만들어 반환
@@ -42,7 +42,6 @@ def get_movies(param, dbh):
 
     with urllib.request.urlopen(url) as response:  # with 문 안에 열어서 url을 열고 닫는 문제 해결
         try:  # Connection 오류 발생에 대비해 예외처리
-
             # 한글 디코딩을 위한 부분
             html_code = response.read().decode(response.headers.get_content_charset(), errors='replace')
 
@@ -59,25 +58,24 @@ def get_movies(param, dbh):
                     title = parsed_movies[0].text
                     link = BASE_URL + parsed_movies[0]['href']
                     code = link[link.index('=') + 1:]
+                    if(code == "146469"):
+                        print("택시운전사")
                     movie_info = {'title': title, 'link': link, 'code': code, 'valid': True}
 
                     if dbh.movielist.find({'code': code}).count() < 1:  # DB에 없는 경우
                         dbh.movielist.insert_one(movie_info)  # 영화 정보를 삽입
-                        # print("Insert into DB: ", title)
                     elif dbh.movielist.find({'code': code}).count() == 1:  # DB에 이미 존재하는 경우
-                        
+
                         seen = False
                         for banned_movie in BANNED_LIST:
                             if banned_movie in str(soup):
                                 seen = True
                                 break
-                        
+
                         if seen:  # 제외 리스트에 포함된 영화 일 경우, vaild -> False
                             dbh.movielist.update_one({'code': code}, {'$set': {'valid': False}})
-                            # print("Invalid movie: ", title)
-                        else:  # 그렇지 않은 경우 영화 정보 업데이트
-                            # print("Update from DB: ", title)
-                            continue
+                            #print("Invalid movie: ", title)
+
 
             # ul 요소에서 class로 구별해서 스크랩핑 2
             movie_list = soup.findAll("ul", {"class": "directory_list"})[0].findAll('a', class_=lambda x: x != 'green')
@@ -91,18 +89,13 @@ def get_movies(param, dbh):
 
                     movie_info = {'title': title, 'link': link, 'code': code, 'valid': True}  # 아이템 생성 후 넣기
                     if dbh.movielist.find({'code': code}).count() < 1:  # 디비에 없는 경우
-
-                        # print("Insert into DB: ", title)
                         dbh.movielist.insert_one(movie_info)
 
                 except Exception as error:
-                    # print("Error1: ", error)
                     continue
 
         except Exception as error:
-            # print("Error2: ", error)
             return -1
-
 
 def main():
 
@@ -120,6 +113,6 @@ def main():
     # 멀티 스레드를 이용해 동시에 20개씩 크롤링
     multi_threading(get_movies, [[BROWSE_URL + param, movie_dbh] for param in params], 20)
 
-    print("ended?")
+    print("Finished?")
 if __name__ == '__main__':
     main()

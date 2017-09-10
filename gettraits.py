@@ -44,6 +44,29 @@ def get_mainactors(movie, dbh):
         print("Invalid movie: ", error)
         return -1
 
+def getgenres(movie, dbh):
+    baseurl = 'http://movie.naver.com/movie/bi/mi/basic.nhn?code='
+    ret = []
+    with urllib.request.urlopen(baseurl + movie['code']) as response:
+        htmlcode = response.read().decode(response.headers.get_content_charset(), errors='replace')
+        soup = BeautifulSoup(htmlcode, 'html.parser')
+        #print(soup.prettify())
+        links = soup.findAll('a')
+        for link in links:
+            try:
+                if 'movie/sdb/browsing/bmovie.nhn?genre=' in str(link):
+                    ret.append(link.text)
+
+            except Exception as inst:
+                print(inst)
+                print("Error with something!")
+                continue
+        if ret == []:
+            dbh.movielist.update_one({'_id': movie['_id']}, {'$set': {'valid': False}})
+        for genre in ret:
+            dbh.movielist.update_one({'_id': movie['_id']}, {'$addToSet': {'genre': genre}})
+        print(ret)
+
 
 def get_traits(movie, dbh):
 
@@ -140,6 +163,7 @@ def get_traits(movie, dbh):
 
                 return -1
 
+            getgenres(movie, dbh)
             main_actors = get_mainactors(movie, dbh)
             if main_actors:
                 dbh.movielist.update({'_id': movie['_id']}, {'$set': {'actors': get_mainactors(movie, dbh)}})
