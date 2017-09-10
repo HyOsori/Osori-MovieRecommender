@@ -24,17 +24,18 @@ def comparegenre(a, b, dbh):#get genre b's distance from a
 
 def genredistance(a, b, dbh):#movie A movie B
     totaldist = 0
-#    print(a['genre'], b['genre'])
-    for genre in b['genre']:
-        totaldistance = 0
-        count = 0
-        if genre not in a['genre']:
-            for ref in a['genre']:
-                totaldistance += comparegenre(ref, genre, dbh)#genre a to genre b
-                count += 1
-        if count != 0:
-            totaldist += (totaldistance / count)
-#    print(totaldist)
+    try:
+        for genre in b['genre']:
+            totaldistance = 0
+            count = 0
+            if genre not in a['genre']:
+                for ref in a['genre']:
+                    totaldistance += comparegenre(ref, genre, dbh)#genre a to genre b
+                    count += 1
+            if count != 0:
+                totaldist += (totaldistance / count)
+    except:
+        return 100000
     return totaldist
 
 def getratingdistance(a, dbh):

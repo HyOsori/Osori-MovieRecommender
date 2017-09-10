@@ -23,6 +23,13 @@ def reset_validity(dbh, valid):
     for movie in data:
         dbh.movielist.update_one({"_id": movie["_id"]}, {"$set": {"valid": valid}})
 
+def disable_incorrect_movies(dbh):
+    movies = list(dbh.movielist.find({"valid": {"$ne": False}}))
+    for movie in movies:
+        if('genre' not in movie):
+            dbh.movielist.update_one({"_id": movie["_id"]}, {"$set": {"valid": False}})
+        if('rating' not in movie):
+            dbh.movielist.update_one({"_id": movie["_id"]}, {"$set": {"valid": False}})
 
 def main():
     try:
@@ -31,6 +38,7 @@ def main():
         movie_dbh = mongo_client['moviedb']  # 생성할(된) DB 명칭
 
         get_data(movie_dbh)
+        disable_incorrect_movies(movie_dbh)
         #reset_validity(movie_dbh, True)
 
     except Exception as error:

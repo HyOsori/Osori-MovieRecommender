@@ -70,6 +70,28 @@ def choosegenre(genre, dbh, seen, cands=10):
     print(genrespicked)
     return ret
 
+def removemovie(code, checklist):
+    i = 0
+    while i < len(checklist):
+        if(checklist[i]["code"] == code):
+            checklist.pop(i)
+            return
+        i += 1
+
+def findmovies(movieseen, dbh):
+    ret = []
+    for code in movieseen:
+        movie = dbh.movielist.find_one({"code": code})
+        if movie:
+            ret.append(movie)
+    return ret
+
+def addedtotaldistance(movielist, movieb, dbh):
+    ret = 0
+    for moviea in movielist:
+        ret += totaldistance(moviea, movieb, dbh)
+    return ret
+
 def main():
     try:
         c = MongoClient(host='localhost', port=27018)
@@ -80,7 +102,14 @@ def main():
     genretogenre(dbh)
     with open('movieseen.txt', 'r') as movieseen:
         movieseen = movieseen.read().split()
-
+        checklist = list(dbh.movielist.find({"valid": True}))
+        # grabbing movielist
+        movielist = findmovies(movieseen, dbh)
+        # removing seen movies from recommendation list
+        for code in movieseen:
+            removemovie(code, checklist)
+        checklist.sort(key = lambda x: addedtotaldistance(movielist, x, dbh))
+        print(checklist[:10])
 
 if __name__ == '__main__':
     main()
