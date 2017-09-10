@@ -16,7 +16,7 @@ python preprocess.py
 ```
 2. movieseen.txt에 네이버 영화 페이지 코드 기입 (사용자가 마음에 들어한 영화 코드들을 기입) <br>
 <br>
-3. recommendations.py 실행
+3. recommendations.py 실행 <br>
 ```bash
 python recommendations.py
 ```
