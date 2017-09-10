@@ -8,8 +8,8 @@ from pymongo import MongoClient
 lock = threading.Lock()
 
 
-def get_genres(movie, dbh):
-    if'genre' in movie:
+def get_genres(movie, dbh): # 장르 등록 및 장르끼리의 weight을 만들어줌
+    if'genre' in movie: # 장르가 이미 등록된 영화인지 확인
         print("The genre is already registered")
         return -1
     movie_url = movie["link"]
@@ -40,9 +40,9 @@ def get_genres(movie, dbh):
                         genre = {'name': genre_name, 'link': genre_link, 'code': genre_code, 'weight': genre_weight}
 
                         lock.acquire()
-                        if dbh.genrelist.find({'code': genre_code}).count() < 1:
+                        if dbh.genrelist.find({'code': genre_code}).count() < 1: # 장르 리스트에 등록이 안된 장르면 등록해줌
 
-                            for exist_genre in dbh.genrelist.find():
+                            for exist_genre in dbh.genrelist.find(): # 기존 장르에 새로운 장르에 대한 weight key를 등록해줌
 
                                 genre['weight'][exist_genre['name']] = 0
                                 weight = exist_genre['weight']
@@ -52,9 +52,9 @@ def get_genres(movie, dbh):
                             dbh.genrelist.insert_one(genre)
                         lock.release()
 
-                    dbh.movielist.update({'code': movie['code']}, {'$set': {'genre': genre_names}})
+                    dbh.movielist.update({'code': movie['code']}, {'$set': {'genre': genre_names}}) # movie에 genre key 등록
 
-                    for first_genre_name in genre_names:
+                    for first_genre_name in genre_names: # weight 증가
                         for second_genre_name in genre_names:
 
                             if first_genre_name != second_genre_name:
@@ -64,7 +64,7 @@ def get_genres(movie, dbh):
 
                                 dbh.genrelist.update({'name': first_genre_name}, {'$set': {'weight': weight}})
                                 lock.release()
-                else:
+                else: # 장르가 없는 영화일 경우 valid -> false
                     dbh.movielist.update({'_id': movie['_id']}, {'$set': {"valid": False}})
                     print("Not found, Invalid movie!")
 
@@ -85,7 +85,7 @@ def iterate_movie(dbh):
     # 멀티 스레드를 이용해 동시에 20개씩 크롤링
     multi_threading(get_genres, [[movie, dbh] for movie in movies], 20)
 
-def get_genreweight(dbh, genre_name):
+def get_genreweight(dbh, genre_name): # 장르의 weight을 반환
     return dbh.genrelist.find({'name' : genre_name})[0]['weight']
 
 def main():
