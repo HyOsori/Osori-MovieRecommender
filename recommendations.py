@@ -1,6 +1,7 @@
 import sys
 from pymongo import MongoClient
 from getdistance import totaldistance
+from random import sample
 
 genrelist = ['블랙코미디', 'SF', '애니메이션', '느와르', '서스펜스', '모험', '멜로/로맨스', '서사', '코미디', '다큐멘터리', '서부', '무협', '전쟁', '드라마', '스릴러', '에로', '가족', '액션', '공연실황', '공포', '범죄', '판타지', '미스터리', '실험', '뮤지컬']
 
@@ -109,7 +110,11 @@ def main():
         for code in movieseen:
             removemovie(code, checklist)
         checklist.sort(key = lambda x: addedtotaldistance(movielist, x, dbh))
-        print(checklist[:10])
+        candidates = sample(checklist[:40], 10)
+        for candidate in candidates:
+            print(candidate["title"])
+            print(candidate["rating"])
+
 
 if __name__ == '__main__':
     main()

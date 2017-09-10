@@ -58,6 +58,8 @@ def get_movies(param, dbh):
                     title = parsed_movies[0].text
                     link = BASE_URL + parsed_movies[0]['href']
                     code = link[link.index('=') + 1:]
+                    if(code == "146469"):
+                        print("택시운전사")
                     movie_info = {'title': title, 'link': link, 'code': code, 'valid': True}
 
                     if dbh.movielist.find({'code': code}).count() < 1:  # DB에 없는 경우
@@ -94,7 +96,6 @@ def get_movies(param, dbh):
 
         except Exception as error:
             return -1
-
 
 def main():
 
