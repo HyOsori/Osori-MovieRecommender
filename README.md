@@ -10,6 +10,13 @@ python 기반 영화추천 프로그램 <br>
 [mylv0714](https://github.com/mylv0714) <br>
 
 ## 사용법
+1. 전처리 스크레이핑 실행
 ```bash
 python preprocess.py
+```
+2. movieseen.txt에 네이버 영화 페이지 코드 기입 (사용자가 마음에 들어한 영화 코드들을 기입) <br>
+<br>
+3. recommendations.py 실행
+```bash
+python recommendations.py
 ```
